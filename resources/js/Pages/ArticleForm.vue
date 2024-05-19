@@ -1,25 +1,29 @@
 <script setup>
-import {Head, Link} from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-
+import DangerButton from '@/Components/DangerButton.vue';
 
 const props = defineProps({
-    articles: {
+    article: {
         type: Object,
-        required: true,
+        required: false,
     },
     csrfToken: String
 });
 
-const formatDate = (dateString, article_status) => {
-    if (dateString && article_status == 'published') {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const [datePart, _] = dateString.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const formattedDate = `${monthNames[month-1]} ${day}, ${year}`;
-        return formattedDate;
-    }
-    return `in ${article_status}`;
+const form = useForm({
+    id: props.article?.data?.id || '',
+    title: props.article?.data?.title || '',
+    content: props.article?.data?.content || '',
+    status: props.article?.data?.status || 'draft',
+});
+
+const create = () => {
+    form.post(route('article.create'));
+};
+
+const update = () => {
+    form.put(route('article.update', { id: form.id }));
 };
 
 </script>
@@ -67,32 +71,35 @@ const formatDate = (dateString, article_status) => {
                 <main class="mt-6">
                     <div class="grid gap-6 lg:grid-cols-1 lg:gap-8">
                         <div class="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#FF2D20] md:row-span-3 lg:p-10 lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#FF2D20]">
-                            <h5>You’ll find interesting articles to read on below</h5>
-                            <ul>
-                                <li v-for="article in articles.data" :key="article.id" class="mb-9">
-                                    <Link :href="`/article/${article.id}`" class="inline-block mr-3 ">
-                                        <div class="text-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1 inline align-sub" viewBox="0 0 20 20"><title>user-solid-circle</title><g fill="#F7F7F7"><path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zM7 6v2a3 3 0 1 0 6 0V6a3 3 0 1 0-6 0zm-3.65 8.44a8 8 0 0 0 13.3 0 15.94 15.94 0 0 0-13.3 0z"></path></g></svg>
-
-                                            {{ article.user.name }} &#183;
-                                            {{ formatDate(article.published_date, article.status) }}
-                                        </div>
-                                        <div class="text-2xl font-bold mt-2">
-                                            {{ article.title }}
-                                        </div>
-                                    </Link>
-
-                                    <Link :href="`/article/form/${article.id}`" v-if="$page.props.auth.user && $page.props.auth.user.id == article.user_id" class="inline-block">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 inline align-sub">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                        </svg>
-                                        Edit
-                                    </Link>
-                                </li>
-                            </ul>
-                            <Link :href="`/article/form/`" v-if="$page.props.auth.user">
-                                <PrimaryButton class="mr-6">Create New Article</PrimaryButton>
-                            </Link>
+                            <Link :href="`/`">&larr; Back</Link>
+                            <h2 class="m-auto">Form Article</h2>
+                            <form @submit.prevent="update" class="w-full" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="PUT">
+                                <div class="relative mt-6">
+                                    <label for="title" class="leading-7 text-sm text-gray-600">Title</label>
+                                    <input v-model="form.title" type="text" id="title" name="title" class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                                    <div v-if="form.errors.title" class="text-red-600 text-sm">{{ form.errors.title }}</div>
+                                </div>
+                                <div class="relative mt-6">
+                                    <label for="content" class="leading-7 text-sm text-gray-600">Content</label>
+                                    <textarea v-model="form.content" id="content" name="content" class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"></textarea>
+                                    <div v-if="form.errors.content" class="text-red-600 text-sm">{{ form.errors.content }}</div>
+                                </div>
+                                <div class="relative mt-6">
+                                    <label for="content" class="leading-7 text-sm text-gray-600">Status</label>
+                                    <select v-model="form.status" name="status" id="status" class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-8 transition-colors duration-200 ease-in-out" :disabled="!form.id">
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="mt-6">
+                                    <PrimaryButton class="mr-6" :disabled="form.processing" @click="create" v-if="!form.id">Create</PrimaryButton>
+                                    <PrimaryButton class="mr-6" :disabled="form.processing" @click="update" v-if="form.id">Update</PrimaryButton>
+                                    <DangerButton class="mr-6" :disabled="form.processing" v-if="form.id && form.status != 'archived'">Archived</DangerButton>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </main>
