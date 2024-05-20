@@ -79,8 +79,17 @@ This project is built on top of laravel sail. So the step to build and running i
 2. git clone the project (https://gitlab.com/rhewin/cognotiv.git)
 3. Copy and rename .env.example to .env
 4. Build the project by execute: 
-    ```$ ./vendor/bin/sail up -d```
+    ```
+    $ ./vendor/bin/sail up -d
+    ```
 5. Run database migration: 
-    ```$ ./vendor/bin/sail php artisan migrate```
-6. Access local at http://localhost:8080/
-7. Mailpit http://localhost:8025/
+    ```
+    $ ./vendor/bin/sail php artisan migrate
+    ```
+6. Build the frontend:
+    ```
+    $ ./vendor/bin/sail npm install
+    $ ./vendor/bin/sail npm run build
+    ```    
+7. Access local at http://localhost:8080/
+8. Mailpit http://localhost:8025/
