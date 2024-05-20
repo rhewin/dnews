@@ -71,3 +71,16 @@ Relationship:
 - 1 Article has many like/dislike
 - 1 Comment belongs to 1 article
 - 1 Comment belongs to 1 user
+
+
+## Local Development
+This project is built on top of laravel sail. So the step to build and running it on local are:
+1. Download & run docker desktop (https://www.docker.com/products/docker-desktop/)
+2. git clone the project (https://gitlab.com/rhewin/cognotiv.git)
+3. Copy and rename .env.example to .env
+4. Build the project by execute: 
+    ```$ ./vendor/bin/sail up -d```
+5. Run database migration: 
+    ```$ ./vendor/bin/sail php artisan migrate```
+6. Access local at http://localhost:8080/
+7. Mailpit http://localhost:8025/
