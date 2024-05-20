@@ -47,3 +47,29 @@ h6 {
     line-height: 1.6;
     /* 160% */
 }
+
+[type='text'] {
+    box-shadow: none !important;
+}
+
+.article-content {
+    margin: 0 auto;
+    max-width: 800px;
+    font-size: 18px;
+    line-height: 1.4;
+    padding: 20px;
+}
+
+.article-content>p:first-child::first-letter {
+    color: rgb(202, 138, 4);
+    float: left;
+    font-size: 75px;
+    line-height: 60px;
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-left: 3px;
+}
+
+.article-content p {
+    margin-bottom: 2rem;
+}

@@ -6,22 +6,45 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use App\Models\Article;
 use App\Models\Like;
 use Inertia\Inertia;
 
 class ArticleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = Article::select('id', 'title', 'published_date', 'user_id', 'status');
-        if (Auth::check()) {
-            $articles = $query->with('user')->orderBy('id', 'DESC')->get();
-        } else {
-            $articles = $query->with('user')->where('status', 'published')->orderBy('id', 'DESC')->get();
+        $query = Article::select('id', 'title', 'summary', 'content', 'published_date', 'user_id', 'status');
+
+        if ($request->has('keyword')) {
+            $searchTerm = $request->query('keyword');
+            $query
+                ->where('title', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('content', 'LIKE', "%{$searchTerm}%");
         }
 
-        $result = respOk('success get published articles', $articles);
+        if (Auth::check()) {
+            $articles = $query->with('user')->orderBy('id', 'DESC')->paginate(5);
+        } else {
+            $articles = $query->with('user')->where('status', 'published')->orderBy('id', 'DESC')->paginate(5);
+        }
+
+        $arrArticles = $articles->toArray();
+        $mapArticles = [];
+        foreach ($arrArticles['data'] as $key => $article) {
+            $mapArticles['list'][$key]['id'] = $article['id'];
+            $mapArticles['list'][$key]['title'] = $article['title'];
+            $mapArticles['list'][$key]['summary'] = $article['summary'];
+            $mapArticles['list'][$key]['published_date'] = $article['published_date'];
+            $mapArticles['list'][$key]['user_id'] = $article['user_id'];
+            $mapArticles['list'][$key]['status'] = $article['status'];
+            $mapArticles['list'][$key]['user'] = $article['user'];
+        }
+        $mapArticles['last_page'] = $arrArticles['last_page'];
+        $mapArticles['current_page'] = $arrArticles['current_page'];
+
+        $result = respOk('success get published articles', $mapArticles);
         return Inertia::render('Welcome', ['articles' => $result, 'csrfToken' => csrf_token() ]);
     }
 
@@ -63,6 +86,8 @@ class ArticleController extends Controller
 
         $article = new Article($validatedData);
         $article->title = ucwords(strtolower($article->title), ".-/ ");
+        $article->content = preg_replace('/(<[^>]+) style=("|\').*?\2/i', '$1', $request->content);
+        $article->summary = Str::words(htmlspecialchars_decode(strip_tags($article->content)), 25, '...');
         $article->user_id = Auth::id();
         $article->save();
         $article->refresh();
@@ -86,6 +111,9 @@ class ArticleController extends Controller
             } else if ($article->status != 'published' && $request->status == 'published') {
                 $validatedData['published_date'] = now();
             }
+            $validatedData['title'] = ucwords(strtolower($request->title), ".-/ ");
+            $validatedData['content'] = preg_replace('/(<[^>]+) style=("|\').*?\2/i', '$1', $request->content);
+            $article->summary = Str::words(htmlspecialchars_decode(strip_tags($request->content)), 25, '...');
             $article->update($validatedData);
             return $this->show($id);
         } catch (ModelNotFoundException $e) {
@@ -96,15 +124,17 @@ class ArticleController extends Controller
     public function archived($id)
     {
         try {
-            $article = Article::where('status', 'published')->findOrFail($id);
+            $article = Article::where(function ($query) use ($id) {
+                $query->where('status', 'published')->orWhere('status', 'draft');
+            })->findOrFail($id);
+
             $article->update([
                 'status' => 'archived',
                 'published_date' => null
             ]);
-
-            return response()->json(respOk('success archived the article'), 200);
+            return to_route('article.index');
         } catch (ModelNotFoundException $e) {
-            return response()->json(respError('Article not found', '404'), 404);
+            return Inertia::render('Error', ['status' => 404]);
         }
     }
 }
