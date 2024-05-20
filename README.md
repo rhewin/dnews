@@ -1,66 +1,73 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## About Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a blog post which people can register to be a contributor. The project consist of 2 parts, backend & frontend which have following spesification:
 
-## About Laravel
+Backend
+- Docker
+- PHP: 8.2
+- Laravel: 11.0
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Frontend
+- Inertia JS: 1.0.14
+- Vite: 5.0
+- Vue: 3.3.13
+- Tailwind: 3.4
+- Froala Editor: 4.2
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Database: 
+- MySQL: 8.0
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications
 
-## Learning Laravel
+## Overview
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+People can visit this platform, on a landing page they can see a list of posts that posted by other people and also has a link for them to register/login. After register, they will be automatically logged in and redirected to homepage which now showing a button to create new article. 
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+If somehow they forget their password, there is a forgot password mechanism. On a login page, there is a link "Forgot your password?", after click that link and provide an email registration. The platform will send an email to reset password (On a local development stage, all emailing process captured by Mailpit that can be accessed on localhost port 8025).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+To create an article (/article/form), just need to put title and content. The content has rich text editor that accept html tag, but for more consistent look the system will wiped out any inline styling during saving the article. The default status for new article is draft. During saving the article, the system is also generate summary to show a little bit overview about the article.
+The article won't show to the other people if it still draft, only shown by creator itself. The owned article has an 'Edit' button, which then can also change the status to published. After article published, they now have a published date. The article can also be deleted (soft delete by archived it). 
 
-## Laravel Sponsors
+On a detail article page, for logged in people, they can see a like button (heart shapped icon), like counter, submit comment section, comment counter and comment list.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+On an article list page, there is a search box that on realtime can filter article by keyword, but the search start after 3rd character being inputted. Emptying search box will reset to show all article.
 
-### Premium Partners
+By default on list article page, also already implemented the pagination which 5 article per page.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
 
-## Contributing
+## Schema Design
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Table **Users**:
+- id bigint
+- name varchar(255)
+- email varchar(255)
+- email_verified_at timestamp
+- password varchar(255)
 
-## Code of Conduct
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Table **Articles**:
+- id bigint
+- title varchar(255)
+- content text
+- summary varchar(255)
+- user_id bigint fk
+- status enum('archived', 'draft', 'published')
+- publised_date timestamp
 
-## Security Vulnerabilities
+Table **Comments**:
+- id bigint
+- article_id bigint
+- user_id bigint
+- content text
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Table **Likes**:
+- id bigint
+- article_id bigint
+- user_id bigint
+- is_like tinyint(1)
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Relationship:
+- 1 Article belongs to 1 User
+- 1 Article has many comment
+- 1 Article has many like/dislike
+- 1 Comment belongs to 1 article
+- 1 Comment belongs to 1 user
