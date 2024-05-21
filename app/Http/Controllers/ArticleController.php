@@ -25,6 +25,12 @@ class ArticleController extends Controller
         }
 
         if (Auth::check()) {
+            $query = $query->where(function ($query) {
+                $query
+                    ->where('status', 'published')
+                    ->orWhere('user_id', Auth::id());
+            });
+
             $articles = $query->with('user')->orderBy('id', 'DESC')->paginate(5);
         } else {
             $articles = $query->with('user')->where('status', 'published')->orderBy('id', 'DESC')->paginate(5);
@@ -52,8 +58,13 @@ class ArticleController extends Controller
     {
         try {
             $article = Article::with(['user','comments.user'])->findOrFail($id);
-            $likeCount = Like::where('article_id', $id)->where('is_like', 1)->count();
-            $result = respOk('success get article details', $article, ['like_count' => $likeCount]);
+            $likeQuery = Like::where('article_id', $id)->where('is_like', 1);
+            $likeCount = $likeQuery->count();
+            $isLike = 0;
+            if (Auth::check()) {
+                $isLike = $likeQuery->where('user_id', Auth::id())->count();
+            }
+            $result = respOk('success get article details', $article, ['like_count' => $likeCount, 'is_like' => $isLike]);
 
             return Inertia::render('ArticleDetail', ['article' => $result, 'csrfToken' => csrf_token()]);
         } catch (ModelNotFoundException $e) {

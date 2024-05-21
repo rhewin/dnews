@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Controllers\ArticleController;
 use App\Models\Article;
 use App\Models\Comment;
 use Inertia\Inertia;
@@ -25,8 +26,8 @@ class CommentController extends Controller
             $comment->user_id = Auth::id();
             $comment->save();
 
-            $result = respOk('get article details', $article);
-            return Inertia::render('ArticleDetail', ['article' => $result]);
+            $articleController = new ArticleController();
+            return $articleController->show($article->id);
         } catch (ModelNotFoundException $e) {
             return Inertia::render('Error', ['status' => 404]);
         }

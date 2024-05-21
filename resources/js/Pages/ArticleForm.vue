@@ -1,6 +1,7 @@
 <script setup>
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import Header from '@/Components/Header.vue';
+import Footer from '@/Components/Footer.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 
@@ -84,9 +85,7 @@ const archive = () => {
                     </div>
                 </main>
 
-                <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    Rheza Sindhuwinata - rheza.s@gmail.com
-                </footer>
+                <Footer />
             </div>
         </div>
     </div>

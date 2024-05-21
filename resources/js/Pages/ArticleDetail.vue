@@ -2,6 +2,7 @@
 import {ref} from 'vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import Header from '@/Components/Header.vue';
+import Footer from '@/Components/Footer.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 const props = defineProps({
@@ -18,7 +19,7 @@ const form = useForm({
 });
 
 const btnComment = ref(false);
-const isLiked = ref(false);
+const isLiked = ref(props.article?.meta?.is_like);
 
 const comment = () => {
     if (!btnComment.value) {
@@ -37,6 +38,7 @@ const toggleLike = (user) => {
         }
     }
 };
+
 </script>
 
 <template>
@@ -69,6 +71,7 @@ const toggleLike = (user) => {
                             <div class="mt-12 w-full rounded-lg border-2 border-gray-700 border-dotted p-6" v-if="$page.props.auth.user">
                                 <form @submit.prevent="comment" class="w-full" method="post" v-if="!btnComment">
                                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="_method" value="POST">
                                     <textarea v-model="form.content" id="content" name="content" class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out" placeholder="What's your opinion?"></textarea>
                                     <div v-if="form.errors.content" class="text-red-600 text-sm">{{ form.errors.content }}</div>
                                     <PrimaryButton class="mt-6 mr-6" :disabled="form.processing" @click="comment">Submit Comment</PrimaryButton>
@@ -91,9 +94,7 @@ const toggleLike = (user) => {
                     </div>
                 </main>
 
-                <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    Rheza Sindhuwinata - rheza.s@gmail.com
-                </footer>
+                <Footer />
             </div>
         </div>
     </div>
